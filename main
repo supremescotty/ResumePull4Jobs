@@ -1,0 +1,72 @@
+#To install the necessary Python packages
+pip install PyPDF2
+pip install nltk
+pip install selenium
+
+# Import the necessary libraries
+import re  # For regular expression operations
+import PyPDF2  # For reading PDF files
+from selenium import webdriver  # For controlling the web browser
+from nltk import word_tokenize  # For tokenizing the text (not used in this example but useful for more advanced NLP)
+
+# Function to extract text from a PDF file
+def extract_text_from_pdf(file_path):
+    # Open the PDF file in read-binary mode
+    pdf_file_obj = open(file_path, 'rb')
+    # Create a PDF file reader object
+    pdf_reader = PyPDF2.PdfFileReader(pdf_file_obj)
+    # Extract text from the first page of the PDF file
+    page_obj = pdf_reader.getPage(0)
+    text = page_obj.extract_text()
+    # Close the PDF file object
+    pdf_file_obj.close()
+    # Return the extracted text
+    return text
+
+# Function to extract information from the text
+def extract_information(text):
+    # Regular expressions for name, email, and phone number
+    # Note: these are very simple and may not work for every case
+    name_pattern = r"([A-Z][a-z]+ [A-Z][a-z]+)"
+    email_pattern = r"(\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b)"
+    phone_pattern = r"(\b[0-9]{10}\b)"
+    
+    # Extract the information using the regex patterns
+    name = re.search(name_pattern, text).group(0)
+    email = re.search(email_pattern, text).group(0)
+    phone = re.search(phone_pattern, text).group(0)
+    
+    # Return the extracted information as a dictionary
+    return {"name": name, "email": email, "phone": phone}
+
+# Function to fill a web form with the extracted information
+def fill_web_form(url, data):
+    # Create a new Firefox browser instance
+    # Note: you may need to replace this with the appropriate webdriver depending on the browser you want to use
+    driver = webdriver.Firefox()
+    # Navigate to the web form
+    driver.get(url)
+    
+    # Find the input fields and fill them with the extracted data
+    name_input = driver.find_element_by_id('name')
+    name_input.send_keys(data["name"])
+    
+    email_input = driver.find_element_by_id('email')
+    email_input.send_keys(data["email"])
+    
+    phone_input = driver.find_element_by_id('phone')
+    phone_input.send_keys(data["phone"])
+    
+    # Uncomment the following line if you want the form to be automatically submitted
+    # driver.find_element_by_id('submit').click()
+
+# Replace these with the path to your PDF file and the URL of your web form
+pdf_path = "path/to/your.pdf"
+web_form_url = "https://yourwebsite.com/form"
+
+# Extract the text from the PDF
+text = extract_text_from_pdf(pdf_path)
+# Extract the necessary information from the text
+data = extract_information(text)
+# Fill the web form with the extracted information
+fill_web_form(web_form_url, data)
